@@ -1,8 +1,11 @@
 <template>
   <form @submit.prevent="goToID">
-    <label>ID: <input
+    <label>Th ID: <input
         type="text"
         v-model="id"
+        spellcheck="false"
+        autocorrect="off"
+        autocapitalize="off"
         placeholder="something-spectacular"
       >
     </label>
@@ -19,7 +22,7 @@ export default {
   },
   methods: {
     goToID() {
-      this.$router.push("/show?id=" + this.id);
+      this.$router.push("/show?id=" + this.id.toLowerCase());
     }
   }
 }

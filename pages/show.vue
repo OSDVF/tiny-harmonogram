@@ -31,19 +31,23 @@
       </template>
     </div>
     <div class="inline-block">
-      <div class="schedule">
-        <template
-          v-for="day in days"
-          :key="`a${day}`"
+      <div
+        class="schedule"
+        v-for="day in days"
+        :key="`a${day}`"
+      >
+        <h3>
+          {{dayNames[(day + firstDOW - 1) % dayNames.length].capitalize()}}
+        </h3>
+        <div
+          v-for="row in nOfRows"
+          :key="`r${row - 1}`"
+          :class="{mark:highlights[row-1]??false}"
         >
-          <h3>
-            {{dayNames[(day + firstDOW - 1) % dayNames.length].capitalize()}}
-          </h3>
-          <div
-            v-for="row in nOfRows"
-            :key="`r${row - 1}`"
-            :class="{mark:highlights[row-1]??false}"
-          >
+          <template v-if="
+            /*test for not empty name*/(activities[day - 1]?.rows[row - 1]?.name?.replace(/<(.|\n)*?>/g, '')?.trim() ?? false) &&
+            /*test for not overlaped */(activities[day -1]?.rows.slice(0,row-1)?.every((rw,rwIndex)=>((rw.time ?? 1) + rwIndex) < row) ?? true)
+            ">
             <h4
               @dblclick="highlights[row-1] = !highlights[row-1];debouncedWrite()"
               class="time"
@@ -57,7 +61,6 @@
 
             <div
               class="activity"
-              v-if="activities[day -1]?.rows.slice(0,row-1)?.every((rw,rwIndex)=>((rw.time ?? 1) + rwIndex) < row) ?? true"
               tabindex="0"
               :class="bgClasses[activities[day - 1]?.rows[row-1]?.type ?? 0]"
               :rowspan="activities[day - 1]?.rows[row-1]?.time"
@@ -65,24 +68,6 @@
               @contextmenu.prevent.stop="linkDisplay($event);$event.target.focus();contextDay = day-1; contextTime = row-1"
             >
               <div style="position:sticky;top:0px">
-                <button
-                  title="Zkrátit trvání"
-                  class="timeChange"
-                  v-if="activities[day - 1]?.rows[row-1]?.time>1"
-                  @click="decreaseTime(day - 1, row - 1)"
-                >-</button>
-                <button
-                  title="Prodloužit trvání"
-                  class="timeChange"
-                  style="top:24px"
-                  @click="increaseTime(day - 1, row - 1)"
-                >+</button>
-                <button
-                  v-if="!(activities[day - 1]?.rows[row - 1]?.name ?? false)"
-                  class="startEdit"
-                  @click="startEdit(day, row, false)"
-                  title="Přidat aktivitu"
-                >+ ✏️</button>
                 <button
                   v-if="activities[day - 1]?.rows[row - 1]?.name
                   &&!(activities[day - 1]?.rows[row - 1]?.comment)"
@@ -146,7 +131,7 @@
               </client-only>
               <div
                 class="comment"
-                v-else-if="activities[day - 1]?.rows[row-1]?.comment?.replace(/<(.|\n)*?>/g, '')?.trim() && showComments"
+                v-else-if="activities[day - 1]?.rows[row-1]?.comment && showComments"
                 v-html="activities[day - 1]?.rows[row-1]?.comment"
                 @dblclick="startEdit(day, row, true)"
               >
@@ -156,15 +141,15 @@
                 v-if="activities[day - 1]?.rows[row-1]?.touch"
               >Upravil {{(activities[day - 1]?.rows[row-1]?.key?.split('|',1) ?? [''])[0]}} {{ new Date(activities[day - 1]?.rows[row-1]?.touch).toLocaleString() }}</small>
             </div>
-          </div>
-        </template>
+          </template>
+        </div>
       </div>
       <span class="noprint">© 2022 OSDVF. Vytvořeno pro <a
           href="https://travna.cz"
           target="_blank"
         >Setkávání Travná z.s.</a>&nbsp;
         <a
-          href="https://github.com/osdvf/mighty-harmonogram"
+          href="https://github.com/osdvf/tiny-harmonogram"
           target="_blank"
         >GitHub Repozitář</a>
       </span>
